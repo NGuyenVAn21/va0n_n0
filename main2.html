@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Auto CodeSandbox Preview</title>
+<script>
+(async function() {
+  const url = "https://ggfxdh.csb.app/";
+
+  // Phát hiện thiết bị
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+  // --- Cách 1: chuyển luôn sang trang preview ---
+  // (đây là mức tự động cao nhất mà trình duyệt cho phép)
+  window.location.replace(url);
+
+  // --- Cách 2: nếu bạn muốn giữ file này mở và inject script ---
+  // ❗ Chú ý: inject cross-origin KHÔNG chạy được trong hầu hết trình duyệt do bảo mật
+  // Mình để code dưới để bạn thấy rõ logic thực hiện bên trong trang preview.
+  const autoScript = `
+    (function(){
+      try {
+        var isMobile = ${isMobile};
+        function findBtn(){
+          var btns = document.querySelectorAll('button, a, [role="button"]');
+          for (var i=0;i<btns.length;i++){
+            var t=(btns[i].innerText||'').toLowerCase();
+            if(t.includes('proceed')||t.includes('continue')||t.includes('yes')){
+              return btns[i];
+            }
+          }
+          return null;
+        }
+        function clickOnce(b){
+          try{ b.focus(); b.click(); console.log('Clicked preview'); }catch(e){}
+        }
+        var b=findBtn();
+        if(b){ clickOnce(b); }else{
+          var obs=new MutationObserver(()=>{var c=findBtn(); if(c){clickOnce(c); obs.disconnect();}});
+          obs.observe(document.documentElement,{childList:true,subtree:true});
+        }
+        if(!isMobile){
+          document.documentElement.style.zoom='50%';
+        }
+      }catch(e){console.error(e);}
+    })();`;
+
+  // Dưới đây chỉ là tham khảo (sẽ bị chặn trong cross-origin)
+  try {
+    const win = window.open(url, "_self"); // mở cùng tab
+    win.eval(autoScript); // sẽ bị chặn trong Chrome do cross-origin
+  } catch(e) {
+    console.warn("Không thể inject trực tiếp do chính sách bảo mật. Cần chạy bookmarklet hoặc userscript.");
+  }
+})();
+</script>
+</head>
+<body>
+  <h2>Đang chuyển tới trang preview...</h2>
+</body>
+</html>
